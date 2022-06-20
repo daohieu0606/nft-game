@@ -18,5 +18,9 @@
   "homepage": "https://github.com/daohieu0606/nft-game#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^4.6.0"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {}
 }
