@@ -3,7 +3,7 @@ const serverUrl = "https://9pahilwouybl.usemoralis.com:2053/server";
 const appId = "2Gv1uDCXoElW5qnEbbUBxaDuVS7IxzZsjSyzm2Px";
 Moralis.start({ serverUrl, appId });
 
-const CONTRACT_ADDRESS = "0x2B3B0480Eb36691E83f180B11C3EFD6adC45D76e";
+const CONTRACT_ADDRESS = "0x2280396c4D40d22A9ba951ba28daAe4069885b05";
 
 let user = null;
 let web3 = null;
@@ -11,6 +11,7 @@ let contract = null;
 
 /** Add from here down */
 async function login() {
+    console.log("connectting");
     user = Moralis.User.current();
     if (!user) {
         try {
@@ -52,20 +53,6 @@ function getAbi() {
         }))
     });
 }
-
-async function getContractBalance() {
-    let data = await contract.methods.getContractBalance().call({ from: ethereum.selectedAddress });
-    console.log(data);
-    document.getElementById("txtContractBalance").innerText = data;
-
-}
-
-async function getWalletBalance() {
-    let data = await contract.methods.getWalletBalance().call({ from: ethereum.selectedAddress });
-    console.log(data);
-    document.getElementById("txtWalletBalance").innerText = data;
-}
-
 
 document.getElementById("btnLogin").onclick = login;
 
