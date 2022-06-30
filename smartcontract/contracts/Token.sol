@@ -13,8 +13,13 @@ contract Token is ERC721 {
     mapping(address => uint256) internal ownerCardCount;
     uint256 nextId = 1;
     uint16 internal constant CARD_PER_COLLECTION = 5;
+    address _admin;
 
     constructor() ERC721("The bai", "The") {}
+
+    function setAdmin() public {
+        _admin = msg.sender;
+    }
 
     function getContractBalance() public view returns (uint256) {
         return address(this).balance;
@@ -25,6 +30,7 @@ contract Token is ERC721 {
     }
 
     function mint() public {
+        require(msg.sender == _admin, "only admin have the permission to mint");
         _safeMint(msg.sender, nextId);
 
         cardToOwner[nextId] = msg.sender;
@@ -106,33 +112,34 @@ contract Token is ERC721 {
         return ids;
     }
 
-    function setPrice(uint256 _tokenId, uint256 price) public {
-        // require(
-        //     msg.sender == cardToOwner[_tokenId],
-        //     "you must owner to set token price"
-        // );
+    function setPrice(uint256 _tokenId, uint256 price)
+        public
+        returns (uint256)
+    {
+        require(msg.sender == _admin, "you must admin to set token price");
 
         cardToPrice[_tokenId] = price;
+
+        return cardToPrice[_tokenId];
     }
 
     function getTokenPrice(uint256 _tokenId) public view returns (uint256) {
         return cardToPrice[_tokenId];
     }
 
-    function buyCard() external payable {
-        uint256 _tokenId = 1;
+    function buyCard(uint256 _tokenId) external payable {
         uint256 price = cardToPrice[_tokenId];
 
-        // string memory s1 = string.concat(
-        //     " payment must be exact ",
-        //     Strings.toString(msg.value)
-        // );
-        // string memory s2 = string.concat(Strings.toString(price), s1);
-        // require(msg.value == price, s2);
+        string memory s1 = string.concat(
+            " payment must be exact ",
+            Strings.toString(msg.value)
+        );
+        string memory s2 = string.concat(Strings.toString(price), s1);
+        require(msg.value == price, s2);
 
         address owner = cardToOwner[_tokenId];
 
-        // require(msg.sender == owner, "you cannot buy your own token ");
+        require(msg.sender != owner, "you cannot buy your own token ");
 
         //do transfer
         _transfer(owner, msg.sender, _tokenId);
@@ -142,6 +149,38 @@ contract Token is ERC721 {
         if (ownerCardCount[owner] > 0) {
             ownerCardCount[owner] = ownerCardCount[owner] - 1;
         }
+    }
+
+    function takePromotionalCard() external payable returns (uint256) {
+        require(msg.value == 0, "you must not send eth to contract");
+
+        uint256 _tokenId = 0;
+        for (uint256 i = 1; i < nextId; i++) {
+            if (cardToOwner[i] == _admin) {
+                _tokenId = i;
+                break;
+            }
+        }
+
+        require(
+            _tokenId != 0,
+            "Not found any available card for promotional purpose."
+        );
+
+        address owner = cardToOwner[_tokenId];
+
+        require(msg.sender != owner, "you cannot receive your own token ");
+
+        //do transfer
+        _transfer(owner, msg.sender, _tokenId);
+
+        cardToOwner[_tokenId] = msg.sender;
+        ownerCardCount[msg.sender] = ownerCardCount[msg.sender] + 1;
+        if (ownerCardCount[owner] > 0) {
+            ownerCardCount[owner] = ownerCardCount[owner] - 1;
+        }
+
+        return _tokenId;
     }
 
     function getContractEthBalance() public view returns (uint256) {

@@ -3,7 +3,7 @@ const serverUrl = "https://9pahilwouybl.usemoralis.com:2053/server";
 const appId = "2Gv1uDCXoElW5qnEbbUBxaDuVS7IxzZsjSyzm2Px";
 Moralis.start({ serverUrl, appId });
 
-const CONTRACT_ADDRESS = "0xD41c551eb473744acC023629Ac3b16f9A87e9B16";
+const CONTRACT_ADDRESS = "0xb9a22dAF5712E89d55f395A1B24391C1f62d41f7";
 
 let user = null;
 let web3 = null;
@@ -77,6 +77,7 @@ async function balanceOf() {
     document.getElementById("txtMessage").innerText = data;
 }
 
+
 //test getAllCardIds
 document.getElementById("btngetAllCardIds").onclick = getAllCardIds;
 async function getAllCardIds() {
@@ -121,27 +122,49 @@ async function getTokenPrice() {
 //test buyCard
 document.getElementById("btnbuyCard").onclick = buyCard;
 async function buyCard() {
-    const tx = contract.methods.buyCard();
-    const gas = await tx.estimateGas();
-    const gasPrice = await web3.eth.getGasPrice();
-    const data = tx.encodeABI();
-    const nonce = await web3.eth.getTransactionCount(ethereum.selectedAddress);
+    // const tx = contract.methods.buyCard();
+    // const gas = await tx.estimateGas();
+    // const gasPrice = await web3.eth.getGasPrice();
+    // const data = tx.encodeABI();
+    // const nonce = await web3.eth.getTransactionCount(ethereum.selectedAddress);
 
-    const amount = web3.utils.toWei('1', 'ether');
+    const amount = web3.utils.toWei('0.295', 'ether');
 
-    console.log(gas)
-    console.log(gasPrice)
+    // console.log(gas)
+    // console.log(gasPrice)
 
     const txData = {
         'from': ethereum.selectedAddress,
         'to': CONTRACT_ADDRESS,
-        'data': data,
-        'gas': gas + 200000,
-        'gasPrice': gasPrice,
+        'data': contract.methods.buyCard(1).encodeABI(),
+        'gas': 1000000,
+        'gasPrice': 20000000000,
         'value': amount,
-        'nonce': nonce,
+        // 'nonce': nonce,
     };
 
-    const receipt = await web3.eth.sendTransaction(txData);
-    console.log(`Transaction hash: ${receipt.transactionHash}`);
+    const receipt = web3.eth.sendTransaction(txData, function (error, hash) {
+        if (error) {
+            console.log(`error : ${JSON.stringify(error)}`);
+        }
+
+        if (hash) {
+            console.log(`transaction hash : ${JSON.stringify(hash)}`);
+        }
+    });
+}
+
+
+//test takePromotionalCard
+document.getElementById("btntakePromotionalCard").onclick = takePromotionalCard;
+async function takePromotionalCard() {
+    let data = await contract.methods.takePromotionalCard()
+        .send({
+            from: ethereum.selectedAddress,
+            'gas': 1000000,
+            'gasPrice': 20000000000,
+        });
+    var receiveTokenId = data.events.Approval.returnValues.tokenId;
+    console.log(receiveTokenId);
+    document.getElementById("txtMessage").innerText = receiveTokenId;
 }
